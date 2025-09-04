@@ -7,7 +7,8 @@ const {
   getDoctors,
   getAllAppointments,
   getDoctorPatients,
-  getUpcomingAppointments
+  getUpcomingAppointments,
+  bookAppointmentGuest
 } = require('../controllers/appointmentController');
 const auth = require('../middleware/auth');
 
@@ -21,5 +22,6 @@ router.get('/doctor-appointments', auth, getDoctorAppointments);
 router.get('/all-appointments', auth, getAllAppointments);
 router.get('/doctor-patients', auth, getDoctorPatients);
 router.get('/upcoming-appointments', auth, getUpcomingAppointments);
+router.post('/book-guest', bookAppointmentGuest);
 
 module.exports = router;

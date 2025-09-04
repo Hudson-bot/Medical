@@ -49,7 +49,7 @@ const allServices = [
     icon: <FaStethoscope className="text-2xl text-indigo-600" />,
     description:
       "Our general medicine department offers primary care for a wide range of health conditions.",
-    image: "/images/general-medicine.jpg",
+    image: "/images/general-medicine.jpeg",
   },
   {
     id: "orthopedics",
@@ -65,7 +65,7 @@ const allServices = [
     icon: <FaBaby className="text-2xl text-indigo-600" />,
     description:
       "Our pediatrics department provides specialized care for infants, children, and adolescents.",
-    image: "/images/pediatrics.jpg",
+    image: "/images/pediatrics.jpeg",
   },
   {
     id: "allergy-immunology",
@@ -73,7 +73,7 @@ const allServices = [
     icon: <FaAllergies className="text-2xl text-indigo-600" />,
     description:
       "Our allergy and immunology department diagnoses and treats allergies and immune system disorders.",
-    image: "/images/allergy.jpg",
+    image: "/images/allergy.jpeg",
   },
   {
     title: "Pulmonology",
@@ -96,7 +96,7 @@ const allServices = [
     icon: <FaUserMd className="text-2xl text-indigo-600" />,
     description:
       "Our dermatology department treats skin conditions, from acne to skin cancer.",
-    image: "/images/dermatology.jpg",
+    image: "/images/dermatology.jpeg",
   },
   {
     id: "pathology",

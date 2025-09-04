@@ -1,5 +1,6 @@
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 // Get all doctors
 exports.getDoctors = async (req, res) => {
@@ -15,7 +16,11 @@ exports.getDoctors = async (req, res) => {
 // Book appointment
 exports.bookAppointment = async (req, res) => {
   try {
-    const { doctorId, disease, date, time, notes } = req.body;
+    const { doctorId, disease, date, time, notes, patientName } = req.body;
+    
+    // Debug logging
+    console.log("Received appointment data:", { doctorId, disease, date, time, notes, patientName });
+    console.log("Logged in user:", req.user.name);
     
     // Validate required fields
     if (!doctorId || !disease || !date || !time) {
@@ -41,10 +46,13 @@ exports.bookAppointment = async (req, res) => {
     }
 
     // Create appointment
+    const finalPatientName = patientName || req.user.name;
+    console.log("Final patient name being saved:", finalPatientName);
+    
     const appointment = new Appointment({
       patientId: req.userId,
       doctorId,
-      patientName: req.user.name,
+      patientName: finalPatientName, // Use provided patientName or fallback to logged-in user's name
       doctorName: doctor.name,
       disease,
       date,
@@ -53,6 +61,7 @@ exports.bookAppointment = async (req, res) => {
     });
 
     await appointment.save();
+    console.log("Appointment saved with patient name:", appointment.patientName);
 
     res.status(201).json({ 
       message: "Appointment booked successfully",
@@ -142,6 +151,86 @@ exports.getAllAppointments = async (req, res) => {
   }
 };
 
+
+// Book appointment for guest (non-logged-in user)
+// Alternative approach if you can't modify the model
+exports.bookAppointmentGuest = async (req, res) => {
+  try {
+    const { doctorId, disease, date, time, notes, patientName, patientEmail, patientPhone } = req.body;
+    
+    // Validate required fields
+    if (!doctorId || !disease || !date || !time || !patientName || !patientEmail || !patientPhone) {
+      return res.status(400).json({ 
+        success: false,
+        message: "All required fields must be provided" 
+      });
+    }
+
+    // Check if doctor exists and get doctor name
+    const doctor = await User.findById(doctorId);
+    if (!doctor || doctor.role !== 'Doctor') {
+      return res.status(404).json({ 
+        success: false,
+        message: "Doctor not found" 
+      });
+    }
+
+    // Check for time slot availability
+    const existingAppointment = await Appointment.findOne({
+      doctorId,
+      date,
+      time,
+      status: 'Scheduled'
+    });
+
+    if (existingAppointment) {
+      return res.status(400).json({ 
+        success: false,
+        message: "This time slot is already booked" 
+      });
+    }
+
+    // Create appointment for guest with required fields
+    const appointment = new Appointment({
+      doctorId,
+      doctorName: doctor.name,
+      patientId: new mongoose.Types.ObjectId(), // Generate a dummy ObjectId
+      patientName, // Use the guest name from the form
+      patientEmail,
+      patientPhone,
+      disease,
+      date,
+      time,
+      notes: notes || '',
+      isGuestBooking: true
+    });
+
+    await appointment.save();
+
+    res.status(201).json({ 
+      success: true,
+      message: "Appointment booked successfully",
+      data: { appointment } 
+    });
+  } catch (err) {
+    console.error('Book appointment error:', err);
+    
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(error => error.message);
+      return res.status(400).json({ 
+        success: false,
+        message: "Validation error", 
+        errors 
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Server error. Please try again later." 
+    });
+  }
+};
+
 // for doctor to get their patients with details
 exports.getDoctorPatients = async (req, res) => {
   try {
@@ -160,7 +249,7 @@ exports.getDoctorPatients = async (req, res) => {
         const patient = appointment.patientId;
         patientMap.set(patient._id, {
           _id: patient._id,
-          name: patient.name,
+          name: appointment.patientName || patient.name, // Use appointment.patientName first, fallback to patient.name
           age: patient.patientInfo?.age || 'Not specified',
           condition: appointment.disease,
           status: appointment.status,
@@ -210,15 +299,20 @@ exports.getUpcomingAppointments = async (req, res) => {
       .limit(10); // Limit to 10 upcoming appointments
     
     // Format the response
-    const formattedAppointments = appointments.map(appt => ({
-      _id: appt._id,
-      patientName: appt.patientId?.name || appt.patientName,
-      doctorName: appt.doctorId?.name || appt.doctorName,
-      date: appt.date,
-      time: appt.time,
-      disease: appt.disease,
-      status: appt.status
-    }));
+    const formattedAppointments = appointments.map(appt => {
+      const finalPatientName = appt.patientName || appt.patientId?.name;
+      console.log("Upcoming appointment - appointment.patientName:", appt.patientName, "populated patient.name:", appt.patientId?.name, "final:", finalPatientName);
+      
+      return {
+        _id: appt._id,
+        patientName: finalPatientName, // Prioritize appointment.patientName over populated patient.name
+        doctorName: appt.doctorId?.name || appt.doctorName,
+        date: appt.date,
+        time: appt.time,
+        disease: appt.disease,
+        status: appt.status
+      };
+    });
     
     res.json({
       appointments: formattedAppointments,

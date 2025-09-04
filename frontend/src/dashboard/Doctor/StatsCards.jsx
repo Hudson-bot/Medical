@@ -3,6 +3,7 @@ import axiosInstance from "../../axiosConfig";
 
 const DoctorPatients = () => {
   const [allPatients, setAllPatients] = useState([]);
+  const [filteredPatients, setFilteredPatients] = useState([]);
   const [displayedPatients, setDisplayedPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,8 +28,19 @@ const DoctorPatients = () => {
       setLoading(true);
       const response = await axiosInstance.get("/api/appointments/doctor-patients");
       const patientsData = response.data.patients || response.data;
-      setAllPatients(patientsData);
-      setDisplayedPatients(patientsData.slice(0, 5));
+      
+      // Filter patients: only show those with past visit dates
+      const currentDate = new Date();
+      const pastPatients = patientsData.filter(patient => {
+        if (!patient.date) return false; // Skip if no date
+        
+        const visitDate = new Date(patient.date);
+        return visitDate < currentDate; // Only include past visits
+      });
+      
+      setAllPatients(pastPatients);
+      setFilteredPatients(pastPatients);
+      setDisplayedPatients(pastPatients.slice(0, 5));
     } catch (err) {
       console.error("Error fetching doctor's patients:", err);
       setError(err.response?.data?.message || "Failed to load patient data");
@@ -109,6 +121,9 @@ const DoctorPatients = () => {
           prescription: ""
         });
         setPrescriptionFile(null);
+        
+        // Refresh the patient list
+        fetchDoctorPatients();
       }
     } catch (error) {
       console.error('Error updating patient details:', error);
@@ -154,10 +169,64 @@ const DoctorPatients = () => {
       default: return "bg-gray-100 text-gray-800";
     }
   };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "No date";
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white p-6 rounded-3xl shadow-xl">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">My Patients (Past Visits)</h3>
+        <div className="animate-pulse">
+          <div className="h-10 bg-gray-300 rounded mb-4"></div>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-12 bg-gray-300 rounded mb-2"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white p-6 rounded-3xl shadow-xl">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">My Patients (Past Visits)</h3>
+        <div className="text-red-500 text-center py-8">{error}</div>
+        <button 
+          onClick={fetchDoctorPatients} 
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (allPatients.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded-3xl shadow-xl">
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">My Patients (Past Visits)</h3>
+        <div className="text-center py-8 text-gray-600">
+          <p>No patients with past visits found</p>
+          <p className="text-sm mt-2">Patients will appear here after their appointment dates have passed</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-white p-6 rounded-3xl shadow-xl">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">My Patients</h3>
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">My Patients (Past Visits)</h3>
         
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -167,7 +236,7 @@ const DoctorPatients = () => {
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Age</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Condition</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Visit</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700">Visit Date</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Priority</th>
                 <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
               </tr>
@@ -184,7 +253,7 @@ const DoctorPatients = () => {
                     </span>
                   </td>
                   <td className="py-4 px-4 text-gray-700">
-                    {patient.lastVisit || (patient.date && new Date(patient.date).toLocaleDateString())}
+                    {formatDate(patient.date)}
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(patient.priority)}`}>
@@ -207,7 +276,7 @@ const DoctorPatients = () => {
 
         <div className="mt-6 flex justify-between items-center">
           <span className="text-sm text-gray-600">
-            Showing {displayedPatients.length} of {allPatients.length} patients
+            Showing {displayedPatients.length} of {allPatients.length} patients with past visits
           </span>
           <button onClick={handleViewAll} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
             View All Patients
@@ -322,7 +391,7 @@ const DoctorPatients = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-2xl font-bold text-gray-800">All My Patients</h3>
+              <h3 className="text-2xl font-bold text-gray-800">All My Patients (Past Visits)</h3>
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700 text-2xl">
                 &times;
               </button>
@@ -337,7 +406,7 @@ const DoctorPatients = () => {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Age</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Condition</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Visit</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Visit Date</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Priority</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
@@ -354,7 +423,7 @@ const DoctorPatients = () => {
                           </span>
                         </td>
                         <td className="py-4 px-4 text-gray-700">
-                          {patient.lastVisit || (patient.date && new Date(patient.date).toLocaleDateString())}
+                          {formatDate(patient.date)}
                         </td>
                         <td className="py-4 px-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(patient.priority)}`}>

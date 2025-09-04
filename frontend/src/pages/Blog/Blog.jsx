@@ -76,14 +76,6 @@ const Blog = () => {
         </div>
 
         {/* "Write New Blog" Button */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate("/blog/new")}
-            className="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300"
-          >
-            Write New Blog
-          </button>
-        </div>
 
         {/* Blog Posts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

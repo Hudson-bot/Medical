@@ -100,8 +100,6 @@ const SignUpPage = () => {
           className="w-full border border-gray-300 p-3 rounded-md mb-3"
         >
           <option value="">Select Role</option>
-          <option value="Patient">Patient</option>
-          <option value="Doctor">Doctor</option>
           <option value="Management">Management</option>
         </select>
         

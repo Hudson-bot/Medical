@@ -38,6 +38,9 @@ const SigninPage = () => {
         localStorage.setItem("userName", response.data.name || formData.email.split('@')[0]);
         localStorage.setItem("patientInfoCompleted", response.data.patientInfoCompleted || false);
         
+        // Dispatch custom event to notify Header component
+        window.dispatchEvent(new CustomEvent("userLogin"));
+        
         // Define route mapping based on user's actual role from backend
         const dashboardRoutes = {
           Patient: response.data.patientInfoCompleted ? "/patient-dashboard" : "/patient-info",

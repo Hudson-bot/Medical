@@ -11,7 +11,8 @@ const BookAppointment = ({ onBookAppointment }) => {
     disease: "",
     date: "",
     time: "",
-    notes: ""
+    notes: "",
+    patientName: ""
   });
 
   // Fetch doctors from backend
@@ -47,7 +48,7 @@ const BookAppointment = ({ onBookAppointment }) => {
       console.log("Appointment booked:", response.data);
       alert("Appointment booked successfully!");
       setIsOpen(false);
-      setFormData({ doctorId: "", disease: "", date: "", time: "", notes: "" });
+      setFormData({ doctorId: "", disease: "", date: "", time: "", notes: "", patientName: "" });
       
       // Refresh appointments if callback provided
       if (onBookAppointment) {
@@ -77,6 +78,18 @@ const BookAppointment = ({ onBookAppointment }) => {
             <div className="bg-white p-8 rounded-2xl shadow-2xl w-96 animate-fadeIn">
               <h2 className="text-2xl font-bold mb-6 text-center text-blue-900">Book an Appointment</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex items-center border border-gray-300 rounded-lg p-3 hover:border-blue-500 transition-colors duration-300">
+                  <FaUser className="text-gray-500 mr-3" />
+                  <input
+                    type="text"
+                    name="patientName"
+                    placeholder="Patient Name"
+                    value={formData.patientName}
+                    onChange={handleChange}
+                    className="w-full outline-none"
+                    required
+                  />
+                </div>
                 <div className="flex items-center border border-gray-300 rounded-lg p-3 hover:border-blue-500 transition-colors duration-300">
                   <FaStethoscope className="text-gray-500 mr-3" />
                   <select

@@ -79,7 +79,7 @@ const Services = () => {
           is designed to support your health at every stage.
         </p>
         <Link
-          to="/allSgervices"
+          to="/allServices"
           className="mt-5 bg-indigo-900 text-white px-6 py-3 rounded-full text-lg font-medium hover:bg-indigo-800 transition-colors duration-300 inline-block"
         >
           View All Services

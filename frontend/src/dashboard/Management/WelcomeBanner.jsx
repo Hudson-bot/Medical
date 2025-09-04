@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useNavigate } from "react";
 import axiosInstance from "../../axiosConfig"; // Adjust path as needed
-
+import BookAppointmentModal from "../../components/Home/BookAppointmentModal";
 const WelcomeBanner = () => {
   const [patientName, setPatientName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
 
   // Fetch patient data from backend
   useEffect(() => {
@@ -37,6 +38,10 @@ const WelcomeBanner = () => {
     fetchPatientData();
   }, []);
 
+  const handleBookAppointment = () => {
+    setShowAppointmentModal(true);
+  };
+
   if (loading) {
     return (
       <div className="bg-gradient-to-br from-blue-600 to-purple-600 p-6 rounded-3xl shadow-xl text-white">
@@ -65,7 +70,17 @@ const WelcomeBanner = () => {
   }
 
   return (
+    
     <div className="mt-16 bg-gradient-to-br from-blue-600 to-purple-600 p-8 rounded-3xl shadow-xl text-white flex justify-between items-center">
+      {showAppointmentModal && (
+      <BookAppointmentModal 
+        onClose={() => setShowAppointmentModal(false)}
+        onBookAppointment={() => {
+          setShowAppointmentModal(false);
+          // You can add any success handling here
+        }}
+      />
+    )}
       <h1 className="text-3xl font-bold">Good Morning, {patientName}</h1>
       <p className="text-lg mt-2">
         {new Date().toLocaleDateString("en-US", {
@@ -75,7 +90,9 @@ const WelcomeBanner = () => {
           day: "numeric",
         })}
       </p>
-      <button className="mt-4 px-6 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+      <button 
+      onClick={handleBookAppointment}
+      className="mt-4 px-6 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
           Create Appointment
         </button>
     </div>
@@ -83,22 +100,3 @@ const WelcomeBanner = () => {
 };
 
 export default WelcomeBanner;
-
-//import React from 'react';
-
-// const WelcomeBanner = () => {
-//   return (
-//     <div className="mt-16 bg-gradient-to-br from-blue-600 to-purple-600 p-8 rounded-3xl shadow-xl text-white flex justify-between items-center">
-//       {/* Text Content */}
-//       <div>
-//         <h2 className="text-3xl font-bold">Good Morning, Daniel Bruk</h2>
-//         <p className="text-lg mt-2">Have a nice day at work & don’t forget to take care of yourself!</p>
-//         <button className="mt-4 px-6 py-2 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-//           Create Appointment
-//         </button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default WelcomeBanner;fetxh the name of the logged user

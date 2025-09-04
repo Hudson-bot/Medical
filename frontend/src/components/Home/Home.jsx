@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaUserMd } from "react-icons/fa";
 import AboutUs from "../About Us/AboutUs";
 import Services from "../Services/Services";
@@ -10,19 +10,33 @@ import Footer from "../Footer/Footer";
 import TeamMembers from "../TeamMembers/TeamMembers";
 import Testimonials from "../Testimonials/Testimonials";
 import { Link, useNavigate } from "react-router-dom";
+import BookAppointmentModal from "../Home/BookAppointmentModal"; // Import the modal component
 
-  
 const Home = () => {
   const navigate = useNavigate();
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+
   const handleSignIn = (role) => {
-    navigate(`/signin?role=${role}`); // Navigate to the SigninPage with role as a query parameter
+    navigate(`/signin?role=${role}`);
   };
 
-  const handleSignIn1 = () => {
-    navigate(`/aboutus1`); // Navigate to the SigninPage with role as a query parameter
+  const handleBookAppointment = () => {
+    setShowAppointmentModal(true);
   };
+
   return (
     <div className="mt-16 overflow-x-hidden">
+      {/* Book Appointment Modal */}
+      {showAppointmentModal && (
+        <BookAppointmentModal 
+          onClose={() => setShowAppointmentModal(false)}
+          onBookAppointment={() => {
+            setShowAppointmentModal(false);
+            // You can add any success handling here
+          }}
+        />
+      )}
+
       {/* Hero Section */}
       <div
         className="w-full h-screen overflow-hidden flex flex-col lg:flex-row items-center justify-between bg-cover bg-no-repeat bg-center px-4 sm:px-6 lg:px-16 xl:px-32 rounded-sm"
@@ -45,13 +59,15 @@ const Home = () => {
           {/* Buttons Section */}
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start mt-6 gap-4">
             <button 
-            onClick={() => handleSignIn("Patient")}
-            className="bg-blue-900 text-white px-6 py-2 sm:px-8 sm:py-3 lg:px-10 lg:py-3 text-sm sm:text-base lg:text-lg font-medium rounded-full hover:bg-blue-800 transition-colors duration-300">
+              onClick={handleBookAppointment}
+              className="bg-blue-900 text-white px-6 py-2 sm:px-8 sm:py-3 lg:px-10 lg:py-3 text-sm sm:text-base lg:text-lg font-medium rounded-full hover:bg-blue-800 transition-colors duration-300"
+            >
               Book an Appointment
             </button>
             <Link
-             to={"/aboutUspage"}
-             className="bg-blue-900 text-white px-6 py-2 sm:px-8 sm:py-3 lg:px-10 lg:py-3 text-sm sm:text-base lg:text-lg font-medium rounded-full hover:bg-blue-800 transition-colors duration-300">
+              to={"/aboutUspage"}
+              className="bg-blue-900 text-white px-6 py-2 sm:px-8 sm:py-3 lg:px-10 lg:py-3 text-sm sm:text-base lg:text-lg font-medium rounded-full hover:bg-blue-800 transition-colors duration-300"
+            >
               About Us
             </Link>
           </div>

@@ -39,7 +39,6 @@ import Blog5 from "./pages/Blog/blog5";
 import Blog6 from "./pages/Blog/blog6";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import { CartProvider } from "./context/CartContext.jsx";
-import BlogForm from "./components/BlogForm/BlogForm.jsx";
 import ForgotPassword from "./pages/Signing/ForgotPassword/ForgotPassword.jsx";
 import PatientInformationPage from "./dashboard/Patient/PatientInformationPage.jsx";
 
@@ -97,7 +96,6 @@ function App() {
           <Route path="/blog/blog4" element={<Blog4 />} />
           <Route path="/blog/blog5" element={<Blog5 />} />
           <Route path="/blog/blog6" element={<Blog6 />} />
-          <Route path="/blog/new" element={<BlogForm />} />
           <Route path="/forgot-password" element={<ForgotPassword/>} />
         </Routes>
         <Footer />

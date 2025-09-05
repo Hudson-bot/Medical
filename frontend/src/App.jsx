@@ -31,7 +31,7 @@ import Pathology from "./pages/services/Pathology";
 import Pediatrics from "./pages/services/Pediatrics";
 import Pharmacy from "./pages/services/Pharmacy";
 import Pulmonology from "./pages/services/Pulmonology";
-import Blog1 from "./pages/Blog/Blog1";
+import Blog1 from "./pages/Blog/blog1";
 import Blog2 from "./pages/Blog/blog2";
 import Blog3 from "./pages/Blog/blog3";
 import Blog4 from "./pages/Blog/blog4";

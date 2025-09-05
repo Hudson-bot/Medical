@@ -80,7 +80,7 @@ const Dashboard = () => {
       {/* Modernized Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg p-6 rounded-lg flex items-center justify-between transform transition-all ">
         <h2 className="text-3xl font-bold text-white">
-          Hello, {userData?.name || "Doctor"}
+          Hello Dr, {userData?.name || "Doctor"}
           {userData?.doctorType && ` (${userData.doctorType})`}
         </h2>
         <p className="text-white text-opacity-90 text-lg">

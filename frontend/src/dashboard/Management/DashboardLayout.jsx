@@ -5,7 +5,7 @@ import StatsCards from "./StatsCards";
 import ChartsSection from "./ChartsSection";
 import DepartmentsList from "./DepartmentsList";
 import AppointmentsTable from "./AppointmentsTable";
-import PatientsTable from "./PatientsTable";
+import TodaySchedule from "../Doctor/TodaySchdule";
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
@@ -23,6 +23,7 @@ const DashboardLayout = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           <ChartsSection />
           <DepartmentsList />
+          <TodaySchedule />
         </div>
 
         <div className="grid grid-cols-1  mt-6">

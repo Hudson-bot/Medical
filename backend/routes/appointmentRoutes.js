@@ -8,7 +8,9 @@ const {
   getAllAppointments,
   getDoctorPatients,
   getUpcomingAppointments,
-  bookAppointmentGuest
+  bookAppointmentGuest,
+  getAppointmentStatsForChart,
+  getMonthlyVisitStats
 } = require('../controllers/appointmentController');
 const auth = require('../middleware/auth');
 
@@ -23,5 +25,7 @@ router.get('/all-appointments', auth, getAllAppointments);
 router.get('/doctor-patients', auth, getDoctorPatients);
 router.get('/upcoming-appointments', auth, getUpcomingAppointments);
 router.post('/book-guest', bookAppointmentGuest);
+router.get('/stats/chart', auth, getAppointmentStatsForChart);
+router.get('/stats/monthly', getMonthlyVisitStats);
 
 module.exports = router;

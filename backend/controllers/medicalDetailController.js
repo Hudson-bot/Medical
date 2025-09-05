@@ -193,14 +193,15 @@ exports.getPatientMedicalDetails = async (req, res) => {
 };
 
 // Download prescription PDF
+// Download prescription PDF
 exports.downloadPrescription = async (req, res) => {
   try {
-    const { patientId } = req.params;
-    const doctorId = req.user.id;
+    const { id } = req.params;
+    const patientId = req.user.id;
 
     const medicalDetail = await PatientMedicalDetail.findOne({
-      patientId: patientId,
-      doctorId: doctorId
+      _id: id,
+      patientId: patientId // Ensure the prescription belongs to the patient
     });
 
     if (!medicalDetail || !medicalDetail.prescriptionPdf || !medicalDetail.prescriptionPdf.path) {
@@ -213,15 +214,20 @@ exports.downloadPrescription = async (req, res) => {
     const filePath = medicalDetail.prescriptionPdf.path;
     const fileName = medicalDetail.prescriptionPdf.originalName;
 
-    res.download(filePath, fileName, (err) => {
-      if (err) {
-        console.error('Download error:', err);
-        res.status(500).json({
-          success: false,
-          message: "Error downloading file"
-        });
-      }
-    });
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: "Prescription file not found"
+      });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+
   } catch (err) {
     console.error('Download prescription error:', err);
     res.status(500).json({
@@ -230,7 +236,6 @@ exports.downloadPrescription = async (req, res) => {
     });
   }
 };
-
 // Get medical details for the authenticated patient
 exports.getPatientOwnMedicalDetails = async (req, res) => {
   try {
@@ -254,6 +259,32 @@ exports.getPatientOwnMedicalDetails = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error"
+    });
+  }
+};
+
+// Get all prescriptions for the authenticated patient
+exports.getPatientPrescriptions = async (req, res) => {
+  try {
+    const patientId = req.user.id;
+
+    // Get all medical details for this patient across all doctors
+    const prescriptions = await PatientMedicalDetail.find({
+      patientId: patientId
+    })
+    .populate('doctorId', 'name doctorType')
+    .populate('patientId', 'name email')
+    .sort({ lastUpdated: -1 }); // Most recent first
+
+    res.json({
+      success: true,
+      data: prescriptions
+    });
+  } catch (err) {
+    console.error('Get patient prescriptions error:', err);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching prescriptions"
     });
   }
 };

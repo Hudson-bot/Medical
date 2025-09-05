@@ -301,7 +301,7 @@ exports.getUpcomingAppointments = async (req, res) => {
     // Format the response
     const formattedAppointments = appointments.map(appt => {
       const finalPatientName = appt.patientName || appt.patientId?.name;
-      console.log("Upcoming appointment - appointment.patientName:", appt.patientName, "populated patient.name:", appt.patientId?.name, "final:", finalPatientName);
+      //console.log("Upcoming appointment - appointment.patientName:", appt.patientName, "populated patient.name:", appt.patientId?.name, "final:", finalPatientName);
       
       return {
         _id: appt._id,
@@ -321,5 +321,133 @@ exports.getUpcomingAppointments = async (req, res) => {
   } catch (err) {
     console.error('Get upcoming appointments error:', err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get appointment statistics for weekly overview chart
+exports.getAppointmentStatsForChart = async (req, res) => {
+  try {
+    const doctorId = req.user.id;
+    
+    // Calculate date range for the current week (Monday to Sunday)
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1)); // Adjust to Monday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Add 6 days to get Sunday
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    // Get appointments for this week
+    const appointments = await Appointment.find({
+      doctorId,
+      date: {
+        $gte: startOfWeek,
+        $lte: endOfWeek
+      },
+      status: { $in: ['Scheduled', 'Completed'] }
+    });
+    
+    // Initialize data structure for all days of the week
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const weeklyData = weekDays.map(day => ({ 
+      day, 
+      appointments: 0,
+      completed: 0,
+      scheduled: 0
+    }));
+    
+    // Count appointments by day and status
+    appointments.forEach(appointment => {
+      const appointmentDate = new Date(appointment.date);
+      const dayIndex = appointmentDate.getDay();
+      // Convert Sunday (0) to 6, Monday (1) to 0, etc.
+      const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+      
+      if (adjustedIndex >= 0 && adjustedIndex < 7) {
+        weeklyData[adjustedIndex].appointments++;
+        
+        if (appointment.status === 'Completed') {
+          weeklyData[adjustedIndex].completed++;
+        } else if (appointment.status === 'Scheduled') {
+          weeklyData[adjustedIndex].scheduled++;
+        }
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: weeklyData,
+      dateRange: {
+        start: startOfWeek.toISOString().split('T')[0],
+        end: endOfWeek.toISOString().split('T')[0]
+      },
+      total: {
+        appointments: appointments.length,
+        completed: appointments.filter(a => a.status === 'Completed').length,
+        scheduled: appointments.filter(a => a.status === 'Scheduled').length
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error fetching appointment stats for chart:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error while fetching appointment statistics' 
+    });
+  }
+};
+
+// Get monthly patient visit statistics
+exports.getMonthlyVisitStats = async (req, res) => {
+  try {
+    const { year } = req.query; // optional year filter, defaults to current year
+    const currentYear = year ? parseInt(year) : new Date().getFullYear();
+
+    const stats = await Appointment.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lte: new Date(`${currentYear}-12-31`)
+          },
+          status: { $in: ["Scheduled", "Completed"] }
+        }
+      },
+      {
+        $group: {
+          _id: { $month: "$date" },
+          visits: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // Map results into all 12 months
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const monthlyData = months.map((m, i) => {
+      const stat = stats.find(s => s._id === i + 1);
+      return {
+        month: m,
+        visits: stat ? stat.visits : 0
+      };
+    });
+
+    res.json({
+      success: true,
+      year: currentYear,
+      data: monthlyData
+    });
+  } catch (error) {
+    console.error("Error fetching monthly visit stats:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching monthly statistics"
+    });
   }
 };

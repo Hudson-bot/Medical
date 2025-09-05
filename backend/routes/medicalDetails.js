@@ -6,7 +6,8 @@ const {
   getPatientMedicalDetails,
   downloadPrescription,
   upload,
-  getPatientOwnMedicalDetails
+  getPatientOwnMedicalDetails,
+  getPatientPrescriptions
 } = require('../controllers/medicalDetailController');
 const auth = require('../middleware/auth');
 
@@ -14,7 +15,8 @@ const auth = require('../middleware/auth');
 router.post('/update', auth, updatePatientDetails);
 router.post('/upload-prescription', auth, upload.single('prescriptionPdf'), uploadPrescription);
 router.get('/patient/:patientId', auth, getPatientMedicalDetails);
-router.get('/:patientId/download-prescription', auth, downloadPrescription);
 router.get('/patient', auth, getPatientOwnMedicalDetails);
+router.get('/prescriptions', auth, getPatientPrescriptions);
+router.get('/prescriptions/:id/download', auth, downloadPrescription);
 
 module.exports = router;

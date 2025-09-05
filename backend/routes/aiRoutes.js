@@ -20,7 +20,7 @@ router.post("/assistant", async (req, res) => {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "http://localhost:5000", // your site URL
+        "HTTP-Referer": "https://medical-8q9q.onrender.com", // your site URL
         "X-Title": "Medical Assistant App",       // your app name
         "Content-Type": "application/json",
       },

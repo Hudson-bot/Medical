@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    env_file:
+      - ./.env.backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - backend_uploads:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    env_file:
+      - ./.env.frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  # Uncomment if you want to run Mongo inside Docker instead of Atlas
+  # mongo:
+  #   image: mongo:7
+  #   container_name: mongo
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo_data:/data/db
+
+volumes:
+  backend_uploads:
+  # mongo_data:
